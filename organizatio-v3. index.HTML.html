@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מירוץ המונחון הארגוני - ד"ר סמדר גלעד חי</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+            font-family: 'Heebo', sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradient 3s ease infinite;
+        }
+
+        .line-clamp-3 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
+
+        .header-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // אייקונים פשוטים
+        const ClockIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const UsersIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+        );
+
+        const TrophyIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+        );
+
+        const TrashIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        );
+
+        const RefreshIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+        );
+
+        const StarIcon = ({ filled }) => (
+            <svg className="w-6 h-6" fill={filled ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+        );
+
+        const CheckIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+        );
+
+        const SendIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+        );
+
+        // קומפוננטת הבאנר העליון
+        function HeaderBanner() {
+            return (
+                <div className="header-banner text-white py-8 px-6 mb-8 animate-gradient">
+                    <div className="max-w-7xl mx-auto text-center">
+                        <h1 className="text-4xl md:text-5xl font-black mb-4 drop-shadow-lg">
+                            קורס התנהגות ארגונית<br />
+                            בסביבות חדשנות & AI
+                        </h1>
+                        <div className="text-xl md:text-2xl font-semibold mb-3 drop-shadow-md">
+                            פיתוח: ד"ר סמדר גלעד חי
+                        </div>
+                        <div className="text-lg md:text-xl mb-2 drop-shadow-md">
+                            <a href="mailto:smadar.gilad@oranim.ac.il" className="hover:underline">
+                                smadar.gilad@oranim.ac.il
+                            </a>
+                        </div>
+                        <div className="text-base md:text-lg opacity-90 mb-3">
+                            (כל הזכויות שמורות לד"ר גלעד חי)
+                        </div>
+                        <div className="text-xl md:text-2xl font-bold drop-shadow-md">
+                            🎓 מכללת אורנים לחינוך
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // נתוני המונחים
+        const termsData = [
+            { id: 1, term: "ארגון", correctDefinition: "ישות חברתית המכוונת להשגת מטרות ספציפיות משותפות. קבוצה של פרטים אשר התקבצה לצורך השגת מטרות מסויימות שאינן יכולות להיות מושגות על ידי יחידים" },
+            { id: 2, term: "מערכת פתוחה", correctDefinition: "גבולות 'רכים', המערכת מקיימת קשרי גומלין עם גורמים מחוץ למערכת (גיוס משאבים)" },
+            { id: 3, term: "מערכת סגורה", correctDefinition: "גבולות 'נוקשים', המערכת מקיימת את עצמה בעצמה, נמנעת מקיום קשרים עם הסביבה החיצונית" },
+            { id: 4, term: "מבנה ארגוני", correctDefinition: "המערכת הפורמאלית המבטאת את חלוקת התפקידים, המשימות בין יחידותיה" },
+            { id: 5, term: "רמת המיקרו", correctDefinition: "תכונות, עמדות, מאפיינים, דפוסי התנהגות של יחידים הפועלים בתוך המערכת" },
+            { id: 6, term: "רמת הקבוצה", correctDefinition: "אוסף של אנשים המקיימים אינטראקציה לאורך זמן, יש להם תפיסה עצמית קבוצתית 'אנחנו', מטרה משותפת" },
+            { id: 7, term: "רמת המאקרו", correctDefinition: "מבט על החברה הארגונית כקולקטיב שלם בעל מטרות, ערכים, משימות" },
+            { id: 8, term: "תיאוריה ניהולית", correctDefinition: "מתמקדת בכלים יישומיים הנגזרים מהתיאוריות והמחקרים" },
+            { id: 9, term: "תיאוריה ארגונית", correctDefinition: "מתמקדת בחקר תהליכים, תופעות ומצבים בארגון (קשרים, השפעות)" },
+            { id: 10, term: "ניהול", correctDefinition: "תהליך של תכנון, ארגון, הובלה, הערכה ובקרה של העובדים במשימות הארגוניות" },
+            { id: 11, term: "התנהגות ארגונית", correctDefinition: "תת תחום מדעי בתוך תחום הניהול, הבוחן התנהגויות של אנשים/קבוצות בסביבת העבודה שלהם" },
+            { id: 12, term: "גישה מכניסטית", correctDefinition: "תחילתה בראשית המאה ה-19, עודדה אחידות, ציות ומשמעת במקום העבודה" },
+            { id: 13, term: "גישה חברתית", correctDefinition: "עיקרה בשנות ה-50-70 ששמה את האדם העובד במרכז מבחינת התייחסות לצרכיו, משאביו ויכולותיו" },
+            { id: 14, term: "גישה מודרנית", correctDefinition: "שנות ה-70 המאה ה-21 מקדמות תפיסה כי הצלחת הארגון משמעה פתיחות והתאמה מהירה לצרכי הסביבה המשתנה" },
+            { id: 15, term: "מוטיבציה", correctDefinition: "כוח מניע, דחף לעשות (ללמוד, לאכול), להתנהג בדרך מסויימת" },
+            { id: 16, term: "תיאוריות תוכן", correctDefinition: "עוסקות בשאלות של אילו צרכים נזקק להם האדם במקום עבודתו" },
+            { id: 17, term: "תיאוריות תהליך", correctDefinition: "טוענות כי האדם מושפע מסביבתו, מתמקדות בבחינת הצרכים שהארגון צריך לספק לעובדיו" },
+            { id: 18, term: "סביבה פנימית", correctDefinition: "יחידות הארגון, מנהליו, עובדיו" },
+            { id: 19, term: "סביבה חיצונית", correctDefinition: "כל הגורמים, הארגונים הנמצאים מחוץ לגבולותיו הרשמיים ואשר יש לו קשר עימם" },
+            { id: 20, term: "מנהיגות", correctDefinition: "אובייקט המשפיע על טיב דפוסי ההתנהגות של יחידים וקבוצות" },
+            { id: 21, term: "עמדות", correctDefinition: "התייחסות אישית עקבית ומתמשכת על אובייקט כלשהו, מצב/תופעה, במובן החיובי/השלילי" },
+            { id: 22, term: "אפקטיביות", correctDefinition: "ארגון המצליח להשיג את מטרותיו" },
+            { id: 23, term: "יעילות", correctDefinition: "ארגון הממצה את המשאבים העומדים לרשותו מבלי להביא לשחיקתם" },
+            { id: 24, term: "תרבות ארגונית", correctDefinition: "הנחות היסוד, הערכים, הסמלים ונורמות ההתנהגות סמויים וגלויים המשותפים לחברי הארגון" }
+        ];
+
+        // קומפוננטה ראשית
+        function OrganizationalTermsGame() {
+            const [viewMode, setViewMode] = useState('select');
+            const [selectedTeam, setSelectedTeam] = useState('');
+            const [gameState, setGameState] = useState(() => {
+                const saved = localStorage.getItem('orgTermsGame');
+                return saved ? JSON.parse(saved) : {
+                    teams: {
+                        'team1': { name: 'צוות 1', answers: {}, completedCount: 0, startTime: null, endTime: null, color: 'blue' },
+                        'team2': { name: 'צוות 2', answers: {}, completedCount: 0, startTime: null, endTime: null, color: 'green' },
+                        'team3': { name: 'צוות 3', answers: {}, completedCount: 0, startTime: null, endTime: null, color: 'purple' },
+                        'team4': { name: 'צוות 4', answers: {}, completedCount: 0, startTime: null, endTime: null, color: 'orange' }
+                    },
+                    presentationScores: {},
+                    gameStarted: false,
+                    gameEnded: false
+                };
+            });
+
+            useEffect(() => {
+                localStorage.setItem('orgTermsGame', JSON.stringify(gameState));
+            }, [gameState]);
+
+            const resetGame = () => {
+                if (confirm('⚠️ האם את בטוחה שברצונך לאפס את כל המשחק? כל הנתונים יימחקו!')) {
+                    const freshState = {
+                        teams: {
+                            'team1': { name: 'צוות 1', answers: {}, completedCount: 0, startTime: null, endTime: null, color: 'blue' },
+                            'team2': { name: 'צוות 2', answers: {}, completedCount: 0, startTime: null, endTime: null, color: 'green' },
+                            'team3': { name: 'צוות 3', answers: {}, completedCount: 0, startTime: null, endTime: null, color: 'purple' },
+                            'team4': { name: 'צוות 4', answers: {}, completedCount: 0, startTime: null, endTime: null, color: 'orange' }
+                        },
+                        presentationScores: {},
+                        gameStarted: false,
+                        gameEnded: false
+                    };
+                    setGameState(freshState);
+                    localStorage.setItem('orgTermsGame', JSON.stringify(freshState));
+                    alert('✅ המשחק אופס בהצלחה!');
+                }
+            };
+
+            if (viewMode === 'select') {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100">
+                        <HeaderBanner />
+                        <div className="max-w-4xl mx-auto px-8 pb-8">
+                            <div className="text-center mb-12">
+                                <div className="w-20 h-20 bg-yellow-500 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl shadow-lg">
+                                    🏆
+                                </div>
+                                <h2 className="text-5xl font-bold text-gray-800 mb-4">מירוץ המונחון הארגוני</h2>
+                                <p className="text-xl text-gray-600">בחרו את תפקידכם במשחק</p>
+                            </div>
+
+                            <div className="space-y-6">
+                                <button
+                                    onClick={() => setViewMode('instructor')}
+                                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-8 rounded-2xl hover:shadow-2xl transition-all transform hover:scale-105"
+                                >
+                                    <div className="text-5xl mb-3">👩‍🏫</div>
+                                    <div className="text-2xl font-bold">מסך המרצה</div>
+                                    <div className="text-sm opacity-90 mt-2">ניהול המשחק ומתן ניקוד</div>
+                                </button>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    {Object.entries(gameState.teams).map(([teamId, team]) => {
+                                        const colors = {
+                                            blue: 'bg-blue-500 hover:bg-blue-600',
+                                            green: 'bg-green-500 hover:bg-green-600',
+                                            purple: 'bg-purple-500 hover:bg-purple-600',
+                                            orange: 'bg-orange-500 hover:bg-orange-600'
+                                        };
+                                        return (
+                                            <button
+                                                key={teamId}
+                                                onClick={() => {
+                                                    setSelectedTeam(teamId);
+                                                    setViewMode('team');
+                                                }}
+                                                className={`${colors[team.color]} text-white p-8 rounded-2xl hover:shadow-2xl transition-all transform hover:scale-105`}
+                                            >
+                                                <UsersIcon />
+                                                <div className="text-2xl font-bold mt-2">{team.name}</div>
+                                                <div className="text-sm opacity-90 mt-2">
+                                                    {team.completedCount}/{termsData.length} מונחים
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* כפתור איפוס כללי */}
+                                <button
+                                    onClick={resetGame}
+                                    className="w-full bg-red-600 text-white p-6 rounded-2xl hover:bg-red-700 transition-all transform hover:scale-105 flex items-center justify-center gap-3"
+                                >
+                                    <RefreshIcon />
+                                    <span className="text-xl font-bold">🔄 איפוס כללי של המשחק</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (viewMode === 'instructor') {
+                return (
+                    <>
+                        <HeaderBanner />
+                        <InstructorView gameState={gameState} setGameState={setGameState} setViewMode={setViewMode} resetGame={resetGame} />
+                    </>
+                );
+            }
+
+            if (viewMode === 'team') {
+                return (
+                    <>
+                        <HeaderBanner />
+                        <TeamView teamId={selectedTeam} gameState={gameState} setGameState={setGameState} setViewMode={setViewMode} />
+                    </>
+                );
+            }
+        }
+
+        // מסך הצוות
+        function TeamView({ teamId, gameState, setGameState, setViewMode }) {
+            const team = gameState.teams[teamId];
+            const [currentTermIndex, setCurrentTermIndex] = useState(0);
+            const [currentAnswer, setCurrentAnswer] = useState('');
+            const [discussionTimeLeft, setDiscussionTimeLeft] = useState(30);
+            const [isDiscussing, setIsDiscussing] = useState(false);
+            const [showAnswersList, setShowAnswersList] = useState(false);
+
+            const currentTerm = termsData[currentTermIndex];
+
+            useEffect(() => {
+                if (!isDiscussing || discussionTimeLeft <= 0) return;
+                const timer = setInterval(() => {
+                    setDiscussionTimeLeft(prev => {
+                        if (prev <= 1) {
+                            setIsDiscussing(false);
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+                return () => clearInterval(timer);
+            }, [isDiscussing, discussionTimeLeft]);
+
+            const startDiscussion = () => {
+                if (!gameState.gameStarted) {
+                    alert('המשחק עדיין לא התחיל! המתינו למרצה.');
+                    return;
+                }
+                setIsDiscussing(true);
+                setDiscussionTimeLeft(30);
+            };
+
+            const submitAnswer = () => {
+                const updatedAnswers = { ...team.answers, [currentTerm.id]: currentAnswer };
+                const completedCount = Object.keys(updatedAnswers).length;
+                const isLastTerm = currentTermIndex === termsData.length - 1;
+
+                setGameState(prev => ({
+                    ...prev,
+                    teams: {
+                        ...prev.teams,
+                        [teamId]: {
+                            ...prev.teams[teamId],
+                            answers: updatedAnswers,
+                            completedCount,
+                            endTime: isLastTerm ? Date.now() : prev.teams[teamId].endTime
+                        }
+                    }
+                }));
+
+                if (!isLastTerm) {
+                    setCurrentTermIndex(prev => prev + 1);
+                    setCurrentAnswer('');
+                    setDiscussionTimeLeft(30);
+                    setIsDiscussing(false);
+                }
+            };
+
+            const deleteAnswer = (termId) => {
+                if (confirm('⚠️ האם אתם בטוחים שברצונכם למחוק תשובה זו?')) {
+                    const updatedAnswers = { ...team.answers };
+                    delete updatedAnswers[termId];
+                    const completedCount = Object.keys(updatedAnswers).length;
+
+                    setGameState(prev => ({
+                        ...prev,
+                        teams: {
+                            ...prev.teams,
+                            [teamId]: {
+                                ...prev.teams[teamId],
+                                answers: updatedAnswers,
+                                completedCount
+                            }
+                        }
+                    }));
+                    alert('✅ התשובה נמחקה בהצלחה!');
+                }
+            };
+
+            if (gameState.gameEnded) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-100 p-8 flex items-center justify-center">
+                        <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-12 text-center">
+                            <div className="text-6xl mb-6">✅</div>
+                            <h1 className="text-5xl font-bold text-gray-800 mb-4">כל הכבוד!</h1>
+                            <p className="text-2xl text-gray-600 mb-6">
+                                סיימתם את המשחק עם <span className="font-bold text-blue-600">{team.completedCount}</span> מונחים!
+                            </p>
+                            <p className="text-lg text-gray-500 mb-8">המתינו להצגות ולניקוד הסופי מהמרצה</p>
+                            <button
+                                onClick={() => setViewMode('select')}
+                                className="bg-blue-600 text-white px-8 py-4 rounded-lg font-bold hover:bg-blue-700 text-xl"
+                            >
+                                חזרה לתפריט
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (currentTermIndex >= termsData.length) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-100 p-8 flex items-center justify-center">
+                        <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-12 text-center">
+                            <div className="text-6xl mb-6">🎉</div>
+                            <h1 className="text-5xl font-bold text-gray-800 mb-4">סיימתם!</h1>
+                            <p className="text-2xl text-gray-600 mb-8">
+                                השלמתם את כל {termsData.length} המונחים!<br />
+                                המתינו למשחקים האחרים ולשלב ההצגות.
+                            </p>
+                            <button
+                                onClick={() => setViewMode('select')}
+                                className="bg-blue-600 text-white px-8 py-4 rounded-lg font-bold hover:bg-blue-700 text-xl"
+                            >
+                                חזרה לתפריט
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const progress = ((currentTermIndex + 1) / termsData.length) * 100;
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-6">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-800">{team.name}</h1>
+                                    <p className="text-gray-600 text-lg">מונח {currentTermIndex + 1} מתוך {termsData.length}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setShowAnswersList(!showAnswersList)}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-sm font-bold"
+                                    >
+                                        📝 תשובות ({team.completedCount})
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('select')}
+                                        className="bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 font-bold"
+                                    >
+                                        חזרה
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className="flex justify-between text-sm mb-2">
+                                    <span className="font-bold">התקדמות</span>
+                                    <span className="font-bold text-blue-600">{Math.round(progress)}%</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-6">
+                                    <div
+                                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-6 rounded-full transition-all duration-500"
+                                        style={{ width: `${progress}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* רשימת תשובות */}
+                        {showAnswersList && (
+                            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                                <h3 className="text-2xl font-bold text-gray-800 mb-4">📝 התשובות שלכם</h3>
+                                <div className="space-y-3 max-h-96 overflow-y-auto">
+                                    {Object.entries(team.answers).map(([termId, answer]) => {
+                                        const term = termsData.find(t => t.id === parseInt(termId));
+                                        return (
+                                            <div key={termId} className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="font-bold text-blue-700">{term?.term}</div>
+                                                    <button
+                                                        onClick={() => deleteAnswer(parseInt(termId))}
+                                                        className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-all"
+                                                        title="מחק תשובה"
+                                                    >
+                                                        <TrashIcon />
+                                                    </button>
+                                                </div>
+                                                <div className="text-gray-700 text-sm">{answer}</div>
+                                            </div>
+                                        );
+                                    })}
+                                    {Object.keys(team.answers).length === 0 && (
+                                        <p className="text-gray-500 text-center py-8">עדיין לא נענו תשובות</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {!gameState.gameStarted ? (
+                            <div className="bg-yellow-50 border-2 border-yellow-500 rounded-xl p-8 text-center">
+                                <div className="text-6xl mb-4">⏳</div>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-2">ממתינים להתחלה...</h2>
+                                <p className="text-gray-600">המרצה עוד לא התחילה את המשחק</p>
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-2xl shadow-lg p-8">
+                                <div className="text-center mb-8">
+                                    <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-6 rounded-3xl shadow-xl">
+                                        <h2 className="text-4xl font-bold">{currentTerm.term}</h2>
+                                    </div>
+                                </div>
+
+                                {isDiscussing ? (
+                                    <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-8 border-4 border-orange-300">
+                                        <div className="text-center mb-6">
+                                            <div className="text-6xl mb-4 animate-pulse">⏰</div>
+                                            <h3 className="text-3xl font-bold text-gray-800 mb-4">זמן דיון</h3>
+                                            <div className="text-7xl font-bold text-orange-600 mb-3">{discussionTimeLeft}</div>
+                                            <p className="text-xl text-gray-600">שניות נותרו</p>
+                                        </div>
+
+                                        <div className="bg-white rounded-xl p-6 shadow-lg">
+                                            <h4 className="font-bold text-xl mb-4 text-orange-700">💬 דונו יחד:</h4>
+                                            <ul className="space-y-3 text-lg text-gray-700">
+                                                <li>🤔 מה המשמעות של המונח?</li>
+                                                <li>📝 איך תסבירו אותו במילים שלכם?</li>
+                                                <li>💡 יש דוגמאות מהחיים?</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <button
+                                            onClick={startDiscussion}
+                                            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-6 rounded-2xl font-bold text-xl hover:from-orange-600 hover:to-red-600 shadow-xl"
+                                        >
+                                            💬 התחילו דיון (30 שניות)
+                                        </button>
+
+                                        <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 border-4 border-blue-300">
+                                            <h3 className="text-2xl font-bold text-gray-800 mb-4">✍️ כתבו את ההגדרה:</h3>
+                                            
+                                            <textarea
+                                                value={currentAnswer}
+                                                onChange={(e) => setCurrentAnswer(e.target.value)}
+                                                placeholder="הקלידו כאן את ההגדרה שהסכמתם עליה..."
+                                                className="w-full h-48 p-6 border-4 border-blue-300 rounded-xl text-xl resize-none focus:border-blue-500 focus:outline-none shadow-inner"
+                                            />
+
+                                            <div className="flex justify-between items-center mt-4 text-gray-600">
+                                                <span className="text-lg">{currentAnswer.length} תווים</span>
+                                                <span className="text-sm">💡 מומלץ: 50-200 תווים</span>
+                                            </div>
+
+                                            <button
+                                                onClick={submitAnswer}
+                                                disabled={!currentAnswer.trim()}
+                                                className={`w-full mt-6 px-8 py-6 rounded-2xl font-bold text-white text-2xl shadow-xl transition-all ${
+                                                    !currentAnswer.trim()
+                                                        ? 'bg-gray-400 cursor-not-allowed'
+                                                        : 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700'
+                                                }`}
+                                            >
+                                                ✅ אישור ומעבר למונח הבא
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // מסך המרצה
+        function InstructorView({ gameState, setGameState, setViewMode, resetGame }) {
+            const [selectedTermForPresentation, setSelectedTermForPresentation] = useState(null);
+            const [presentingTeam, setPresentingTeam] = useState(null);
+            const [scoreToGive, setScoreToGive] = useState(5);
+
+            const startGame = () => {
+                setGameState(prev => ({ ...prev, gameStarted: true, startTime: Date.now() }));
+            };
+
+            const endGame = () => {
+                setGameState(prev => ({ ...prev, gameEnded: true }));
+            };
+
+            const giveScore = () => {
+                if (!presentingTeam || !selectedTermForPresentation) return;
+
+                setGameState(prev => ({
+                    ...prev,
+                    presentationScores: {
+                        ...prev.presentationScores,
+                        [presentingTeam]: {
+                            ...prev.presentationScores[presentingTeam],
+                            [selectedTermForPresentation.id]: scoreToGive
+                        }
+                    }
+                }));
+
+                setSelectedTermForPresentation(null);
+                setPresentingTeam(null);
+                setScoreToGive(5);
+            };
+
+            const calculateFinalScore = (teamId) => {
+                const team = gameState.teams[teamId];
+                const completionScore = (team.completedCount / termsData.length) * 70;
+                
+                const presentationScores = gameState.presentationScores[teamId] || {};
+                const scores = Object.values(presentationScores);
+                const avgAccuracy = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+                const accuracyScore = (avgAccuracy / 5) * 30;
+                
+                const finishedTeams = Object.entries(gameState.teams)
+                    .filter(([_, t]) => t.endTime)
+                    .sort((a, b) => a[1].endTime - b[1].endTime);
+                
+                const bonus = finishedTeams.length > 0 && finishedTeams[0][0] === teamId ? 10 : 0;
+                
+                return Math.round(completionScore + accuracyScore + bonus);
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 p-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-4xl font-bold text-gray-800 mb-2">🎓 מסך המרצה</h1>
+                                    <p className="text-xl text-gray-600">ניהול המשחק ומעקב אחר הצוותים</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={resetGame}
+                                        className="bg-red-600 text-white px-6 py-3 rounded-xl hover:bg-red-700 font-bold text-lg flex items-center gap-2"
+                                    >
+                                        <RefreshIcon />
+                                        איפוס כללי
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('select')}
+                                        className="bg-gray-500 text-white px-8 py-4 rounded-xl hover:bg-gray-600 font-bold text-lg"
+                                    >
+                                        חזרה לתפריט
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {!gameState.gameStarted && (
+                            <div className="bg-green-50 border-4 border-green-500 rounded-2xl p-12 mb-6 text-center">
+                                <button
+                                    onClick={startGame}
+                                    className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-16 py-8 rounded-2xl text-3xl font-bold hover:from-green-700 hover:to-blue-700 shadow-2xl transform hover:scale-105 transition-all"
+                                >
+                                    🚀 התחילו את המשחק!
+                                </button>
+                            </div>
+                        )}
+
+                        {gameState.gameStarted && !gameState.gameEnded && (
+                            <div className="bg-red-50 border-4 border-red-500 rounded-2xl p-8 mb-6 text-center">
+                                <button
+                                    onClick={endGame}
+                                    className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-12 py-6 rounded-2xl text-2xl font-bold hover:from-red-700 hover:to-orange-700 shadow-2xl transform hover:scale-105 transition-all"
+                                >
+                                    ⏹️ סיום משחק ומעבר להצגות
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="grid md:grid-cols-2 gap-6 mb-6">
+                            {Object.entries(gameState.teams).map(([teamId, team]) => {
+                                const progress = (team.completedCount / termsData.length) * 100;
+                                const finalScore = calculateFinalScore(teamId);
+                                const colors = {
+                                    blue: { bg: 'bg-blue-500', border: 'border-blue-500' },
+                                    green: { bg: 'bg-green-500', border: 'border-green-500' },
+                                    purple: { bg: 'bg-purple-500', border: 'border-purple-500' },
+                                    orange: { bg: 'bg-orange-500', border: 'border-orange-500' }
+                                };
+                                
+                                return (
+                                    <div key={teamId} className={`bg-white rounded-2xl shadow-lg p-8 border-l-8 ${colors[team.color].border}`}>
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 className="text-3xl font-bold text-gray-800">{team.name}</h3>
+                                                <p className="text-xl text-gray-600 mt-2">
+                                                    {team.completedCount}/{termsData.length} מונחים הושלמו
+                                                </p>
+                                            </div>
+                                            {team.endTime && (
+                                                <div className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-bold">
+                                                    ✅ סיים!
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="mb-4">
+                                            <div className="flex justify-between text-sm mb-2">
+                                                <span>התקדמות</span>
+                                                <span className="font-bold">{Math.round(progress)}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 rounded-full h-6">
+                                                <div
+                                                    className={`${colors[team.color].bg} h-6 rounded-full transition-all duration-500`}
+                                                    style={{ width: `${progress}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {gameState.gameEnded && (
+                                            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border-2 border-yellow-300 mt-4">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="font-bold text-gray-700 text-lg">ציון סופי:</span>
+                                                    <span className="text-4xl font-bold text-yellow-600">{finalScore}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {gameState.gameEnded && (
+                            <>
+                                <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
+                                    <h2 className="text-3xl font-bold text-gray-800 mb-6">שלב ההצגות והניקוד</h2>
+                                    
+                                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                                        <div>
+                                            <label className="block text-gray-700 font-bold mb-3 text-lg">בחרי צוות מציג:</label>
+                                            <select
+                                                value={presentingTeam || ''}
+                                                onChange={(e) => setPresentingTeam(e.target.value)}
+                                                className="w-full p-4 border-2 border-gray-300 rounded-xl text-lg"
+                                            >
+                                                <option value="">-- בחרי צוות --</option>
+                                                {Object.entries(gameState.teams).map(([teamId, team]) => (
+                                                    <option key={teamId} value={teamId}>{team.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-gray-700 font-bold mb-3 text-lg">בחרי מונח להצגה:</label>
+                                            <select
+                                                value={selectedTermForPresentation?.id || ''}
+                                                onChange={(e) => {
+                                                    const term = termsData.find(t => t.id === parseInt(e.target.value));
+                                                    setSelectedTermForPresentation(term);
+                                                }}
+                                                className="w-full p-4 border-2 border-gray-300 rounded-xl text-lg"
+                                            >
+                                                <option value="">-- בחרי מונח --</option>
+                                                {termsData.map(term => (
+                                                    <option key={term.id} value={term.id}>{term.term}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {presentingTeam && selectedTermForPresentation && (
+                                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 border-4 border-blue-300">
+                                            <h3 className="text-2xl font-bold text-gray-800 mb-6">
+                                                המונח: <span className="text-blue-600">{selectedTermForPresentation.term}</span>
+                                            </h3>
+                                            
+                                            <div className="mb-6">
+                                                <div className="text-sm text-gray-600 mb-2 font-bold">תשובת הצוות:</div>
+                                                <div className="bg-white p-6 rounded-xl border-2 border-blue-200 text-lg">
+                                                    {gameState.teams[presentingTeam].answers[selectedTermForPresentation.id] || 'לא נענה'}
+                                                </div>
+                                            </div>
+
+                                            <div className="mb-6">
+                                                <div className="text-sm text-gray-600 mb-2 font-bold">ההגדרה הנכונה:</div>
+                                                <div className="bg-green-50 p-6 rounded-xl border-2 border-green-300 text-lg">
+                                                    {selectedTermForPresentation.correctDefinition}
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-white rounded-xl p-6 border-2 border-yellow-300">
+                                                <label className="block text-gray-700 font-bold mb-4 text-xl">הערכת דיוק (1-5 כוכבים):</label>
+                                                <div className="grid grid-cols-5 gap-3 mb-6">
+                                                    {[1, 2, 3, 4, 5].map(score => (
+                                                        <button
+                                                            key={score}
+                                                            onClick={() => setScoreToGive(score)}
+                                                            className={`p-4 rounded-xl border-2 transition-all ${
+                                                                scoreToGive === score
+                                                                    ? 'bg-yellow-500 text-white border-yellow-600 transform scale-110'
+                                                                    : 'bg-white border-gray-300 hover:border-yellow-400'
+                                                            }`}
+                                                        >
+                                                            <div className="flex justify-center gap-1 text-2xl">
+                                                                {Array.from({ length: score }).map((_, i) => (
+                                                                    <span key={i}>⭐</span>
+                                                                ))}
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <button
+                                                    onClick={giveScore}
+                                                    className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-6 rounded-xl font-bold text-xl hover:from-green-700 hover:to-blue-700 shadow-lg transform hover:scale-105 transition-all"
+                                                >
+                                                    ✅ אשרי ניקוד ועברי למונח הבא
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-8 border-4 border-yellow-400">
+                                    <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center">
+                                        🏆 טבלת המובילים 🏆
+                                    </h2>
+                                    <div className="space-y-4">
+                                        {Object.entries(gameState.teams)
+                                            .map(([teamId, team]) => ({
+                                                teamId,
+                                                team,
+                                                score: calculateFinalScore(teamId)
+                                            }))
+                                            .sort((a, b) => b.score - a.score)
+                                            .map((item, index) => (
+                                                <div
+                                                    key={item.teamId}
+                                                    className={`flex items-center justify-between p-6 rounded-xl transition-all ${
+                                                        index === 0 ? 'bg-gradient-to-r from-yellow-200 to-yellow-300 border-4 border-yellow-500 transform scale-105' :
+                                                        index === 1 ? 'bg-gradient-to-r from-gray-200 to-gray-300 border-2 border-gray-400' :
+                                                        index === 2 ? 'bg-gradient-to-r from-orange-200 to-orange-300 border-2 border-orange-400' :
+                                                        'bg-white border-2 border-gray-200'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="text-5xl font-bold">
+                                                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-bold text-2xl">{item.team.name}</div>
+                                                            <div className="text-sm text-gray-600 mt-1">
+                                                                {item.team.completedCount} מונחים | {Object.keys(gameState.presentationScores[item.teamId] || {}).length} הצגות
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-5xl font-bold text-gray-800">
+                                                        {item.score}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // רינדור האפליקציה
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<OrganizationalTermsGame />);
+    </script>
+</body>
+</html>
